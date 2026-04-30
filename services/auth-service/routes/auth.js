@@ -7,9 +7,11 @@ router.post('/login', authController.login);
 
 router.post('/refresh', authController.refresh);
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.post('/logout', authController.logout);
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }),
+router.get('/google', authController.googleAuth);
+
+router.get('/google/callback', passport.authenticate('google', { session: false }),
     authController.googleCallback
 );
 

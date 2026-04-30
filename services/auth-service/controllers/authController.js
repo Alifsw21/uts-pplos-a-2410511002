@@ -1,6 +1,7 @@
 const authModel = require('../models/authModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const { config } = require('../config/appConfig');
 
 const generateAccessToken = (user) => {
@@ -79,15 +80,23 @@ const refresh = (req, res) => {
     }
 };
 
-const googleCallback = (req, res) => {
-    const accessToken = generateAccessToken(req.user);
-    const refreshToken = generateRefreshToken(req.user);
-
-    res.status(200).json({
+const logout = (req, res) => {
+    return res.status(200).json({
         success: true,
-        message: 'Login via Google Berhasil',
-        data: { accessToken, refreshToken }
+        message: 'Logout berhasil.'
     });
 };
 
-module.exports = { login, googleCallback, refresh };
+const googleCallback = (req, res) => {
+    const user = req.user;
+
+    const token = jwt.sign(
+        { id: user.id, role: user.role },
+        config.jwtSecret,
+        { expiresIn: config.jwtExpiresIn }
+    );
+
+    res.redirect(`http://localhost:3000/login-success?token=${token}`);
+};
+
+module.exports = { login, googleCallback, refresh, logout, googleAuth: passport.authenticate('google', { scope: ['profile', 'email']})};
