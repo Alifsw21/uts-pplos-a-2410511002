@@ -1,7 +1,6 @@
 const express = require('express');
 const User = require('../models/pengguna');
 const authenticateJWT = require('../middleware/authenticationJWT');
-const user = require('../models/pengguna');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
@@ -27,6 +26,34 @@ router.post('/register', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Terjadi kesalahan pada server',
+            data: err.message
+        });
+    }
+});
+
+router.post('/internal/find-or-create', authenticateJWT, async(req, res) => {
+    try {
+        const { profile, provider } = req.body;
+
+        if (!profile || !provider) {
+            return res.status(400).json({
+                success: false,
+                message: 'Data profil dan provider harus diisi',
+                data: null
+            });
+        }
+
+        const userData = await User.findOrCreatedOAuth(profile, provider);
+
+        res.status(200).json({
+            success: true,
+            message: 'Sinkronisasi user OAuth berhasil',
+            data: userData
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: 'Gagal melakukan sinkronisasi',
             data: err.message
         });
     }
@@ -60,19 +87,19 @@ router.get('/protected/:id', authenticateJWT, async (req, res) => {
 });
 
 router.put('/update/:id', authenticateJWT, async (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password, role, email } = req.body;
     const id = req.params.id;
 
-    if (!username || !password || !role) {
+    if (!username || !password || !role || !email) {
         return res.status(400).json({
             success: false,
-            message: 'Username, password, role harus diisi',
+            message: 'Username, password, role, email harus diisi',
             data: null
         });
     }
 
     try {
-        const result = await user.updatePengguna(id, username, password, role);
+        const result = await user.updatePengguna(id, username, password, role, email);
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,
@@ -83,7 +110,7 @@ router.put('/update/:id', authenticateJWT, async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Data pengguna berhasail diperbarui',
-            data: {id, username, role}
+            data: {id, username, role, email}
         });
     } catch (err) {
         res.status(500).json({
