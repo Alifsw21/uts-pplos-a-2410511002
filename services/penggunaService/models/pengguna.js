@@ -26,8 +26,6 @@ const user = {
 
     findOrCreatedOAuth: async (profile, provider) => {
         const { id, displayName, emails, photos } = profile;
-        const email = emails[0].value;
-        const foto = photos ? photos[0].value : null;
 
         const [rows] = await db.execute(`SELECT * FROM pengguna WHERE email = ?`, [email]);
 
