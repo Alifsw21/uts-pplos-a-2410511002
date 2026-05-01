@@ -1,9 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const app = express();
+
+const tokenBlacklist = new Set();
+
+app.use(express.json());
 
 const limit = rateLimit({
     windowMs: 1 * 60 * 1000,
@@ -33,10 +37,10 @@ const verifyTokenGateway = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) {
+    if (tokenBlacklist.has(token)) {
         return res.status(401).json({
             success: false,
-            message: "Akses ditolak, token tidak ada.",
+            message: 'Token sudah tidak valid, silahkan login ulang',
             data: null
         });
     }
@@ -44,9 +48,8 @@ const verifyTokenGateway = (req, res, next) => {
     try {
         const verified = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verified;
-        req.headers['x-user-id'] = verified.id;
+        req.headers['x-user-id'] = String(verified.id);
         req.headers['x-user-role'] = verified.role;
-
         next();
     } catch (err) {
         res.status(403).json({
@@ -57,33 +60,78 @@ const verifyTokenGateway = (req, res, next) => {
     }
 };
 
+app.post('/auth/logout', (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if(token) tokenBlacklist.add(token);
+    next();
+});
+
 app.use('/auth', createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
     changeOrigin: true,
-    pathRewrite: {
-        '^/auth': '',
-    }
+    pathRewrite: { '^/auth': '' },
+    onProxyReq: fixRequestBody
 }));
 
 app.use('/users', verifyTokenGateway, createProxyMiddleware({
     target: process.env.PENGGUNA_SERVICE_URL || 'http://localhost:3002',
     changeOrigin: true,
-    pathRewrite: {
-        '^/users': '',
-    }
+    pathRewrite: { '^/users': '' },
+    onProxyReq: fixRequestBody
 }));
 
 app.use('/orders', verifyTokenGateway, createProxyMiddleware({
     target: process.env.PESANAN_SERVICE_URL || 'http://localhost:3003',
     changeOrigin: true,
-    pathRewrite: { '^/orders': '' }
+    pathRewrite: { '^/orders': '' },
+    onProxyReq: fixRequestBody
 }));
 
-app.use('/products', createProxyMiddleware({ 
+app.use('/toko', verifyTokenGateway, createProxyMiddleware({
     target: process.env.PRODUK_SERVICE_URL || 'http://localhost:8000',
     changeOrigin: true,
-    pathRewrite: { '^/products': '' }
+    pathRewrite: { '^/toko': '/api/toko' },
+    onProxyReq: fixRequestBody
 }));
+
+app.use('/kategori', verifyTokenGateway, createProxyMiddleware({
+    target: process.env.PRODUK_SERVICE_URL || 'http://localhost:8000',
+    changeOrigin: true,
+    pathRewrite: { '^/kategori': '/api/kategori' },
+    onProxyReq: fixRequestBody
+}));
+
+app.use('/products', verifyTokenGateway, createProxyMiddleware({
+    target: process.env.PRODUK_SERVICE_URL || 'http://localhost:8000',
+    changeOrigin: true,
+    pathRewrite: { '^/products': '/api/produk' },
+    onProxyReq: fixRequestBody
+}));
+
+app.use('/stok', verifyTokenGateway, createProxyMiddleware({
+    target:  process.env.PRODUK_SERVICE_URL || 'http://localhost:8000',
+    changeOrigin: true,
+    pathRewrite: { '^/stok': '/api/stok' },
+    onProxyReq: fixRequestBody
+}));
+
+
+app.get('/login-success', (req, res) => {
+    const token = req.query.token;
+
+    if (!token) {
+        return res.status(400).json({
+            success: false,
+            message: 'Token tidak ditemukan'
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        message: 'Login google berhasil! Silahkan copy token dibawah ini untuk test di postman',
+        data: token
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
