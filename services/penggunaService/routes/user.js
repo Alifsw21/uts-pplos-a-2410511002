@@ -82,7 +82,7 @@ router.put('/update/:id', authenticateJWT, async (req, res) => {
         }
         res.status(200).json({
             success: true,
-            message: 'Data pengguna berhasail diperbarui',
+            message: 'Data pengguna berhasil diperbarui',
             data: {id, username, role, email}
         });
     } catch (err) {

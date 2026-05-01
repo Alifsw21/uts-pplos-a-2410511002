@@ -44,6 +44,9 @@ const verifyTokenGateway = (req, res, next) => {
     try {
         const verified = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verified;
+        req.headers['x-user-id'] = verified.id;
+        req.headers['x-user-role'] = verified.role;
+
         next();
     } catch (err) {
         res.status(403).json({

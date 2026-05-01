@@ -80,4 +80,22 @@ class ProdukController extends Controller
             'data'    => null
         ], 200);
     }
+
+    public function show($id) {
+        $produk = \App\Models\Produk:: with(['kategori.toko', 'stok']) -> find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produk tidak ditemukan',
+                'data'    => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail produk berhasil diambil',
+            'data'    => $produk
+        ], 200);
+    }
 }
