@@ -12,6 +12,8 @@ const generateRefreshToken = (user) => {
     return jwt.sign({ id: user.id, role: user.role }, config.jwtSecret, { expiresIn: config.jwtRefreshExpiresIn });
 };
 
+const tokenBlacklist = new Set();
+
 const login = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -81,6 +83,11 @@ const refresh = (req, res) => {
 };
 
 const logout = (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if(token) {
+        tokenBlacklist.add(token);
+    }
     return res.status(200).json({
         success: true,
         message: 'Logout berhasil.'
