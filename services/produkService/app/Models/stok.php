@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class stok extends Model {
+class Stok extends Model {
     protected $table = 'stok';
     protected $primaryKey = 'idStok';
     public $timestamps = false;
 
-    protected $allowedFields = ['idProduk', 'jumlahStok'];
+    protected $fillable = ['idProduk', 'jumlahStok'];
 
     public function produk() {
         return $this->belongsTo(Produk::class, 'idProduk');

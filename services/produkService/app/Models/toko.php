@@ -9,7 +9,7 @@ class Toko extends Model {
     protected $primaryKey = 'idToko';
     public $timestamps = false;
 
-    protected $allowedFields = ['namaToko', 'alamatToko'];
+    protected $fillable = ['namaToko', 'alamatToko'];
 
     public function kategoris() {
         return $this->hasMany(Kategori::class, 'idToko');

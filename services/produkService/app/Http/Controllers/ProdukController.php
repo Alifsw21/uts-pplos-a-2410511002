@@ -28,17 +28,27 @@ class ProdukController extends Controller
     }
 
     public function store(Request $request) {
-        $produk = \App\Models\Produk::create([
-            'idKategori' => $request->idKategori,
-            'namaProduk' => $request->namaProduk,
-            'harga'      => $request->harga
-        ]);
+        try {
+            $data = $request->json()->all();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil ditambahkan',
-            'data'    => $produk
-        ], 201);
+            $produk = \App\Models\Produk::create([
+                'idKategori' => $data['idKategori'] ?? $request->input('idKategori'),
+                'namaProduk' => $data['namaProduk'] ?? $request->input('namaProduk'),
+                'harga'      => $data['harga'] ?? $request->input('harga')
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil ditambahkan',
+                'data'    => $produk
+            ], 201);
+        } catch(\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error_type' => get_class($e),
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id) {
