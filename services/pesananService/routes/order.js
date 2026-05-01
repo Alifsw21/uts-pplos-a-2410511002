@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/pesanan', async (req, res) => {
     try {
         const result = await orders.getAll();
-
+        
         res.status(200).json({
             success: true,
             message: 'Data pesanan berhasil diambil',
@@ -27,7 +27,7 @@ router.post('/pesanan', async (req, res) => {
         const {idPengguna, idToko, idProduk, jumlah} = req.body;
         
         if (!idPengguna || !idToko || !idProduk || !jumlah) {
-            res.status(404).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Semua data harus diisi',
                 data: null
@@ -77,7 +77,7 @@ router.put('/update/:id', async (req, res) => {
     }
 
     try {
-        const result = await order.update(id, idPengguna, idToko, idProduk, hargaSatuan, jumlah);
+        const result = await orders.update(id, idPengguna, idToko, idProduk, hargaSatuan, jumlah);
         if (result.affectedRows === 0) {
             return res.status(404).json({
                 success: false,

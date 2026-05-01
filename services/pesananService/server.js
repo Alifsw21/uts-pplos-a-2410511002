@@ -7,7 +7,7 @@ app.use(express.json());
 
 app.use('/', orderRoutes);
 
-const PORT = process.env.DB_PORT || 3003;
+const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
     console.log(`Pesanan Service perjalan di port ${PORT}`);
 });
