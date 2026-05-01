@@ -4,6 +4,15 @@ const authenticateJWT = require('../middleware/authenticationJWT');
 const { db } = require('../config/appConfig');
 const router = express.Router();
 
+const checkInternalToken = (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token !== process.env.INTERNAL_SERVICE_TOKEN) {
+        res.status(403).json({ success: false, message: 'Forbidden', data: null });
+        return false;
+    }
+    return true;
+};
+
 router.post('/register', async (req, res) => {
     try {
         const {username, password, role, email} = req.body;
@@ -24,6 +33,14 @@ router.post('/register', async (req, res) => {
             data: { username, role: role || 'pembeli', email }
         });
     } catch (err) {
+
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({
+                success: false,
+                message: 'Email atau username sudah terdaftar',
+                data: null
+            });
+        }
         res.status(500).json({
             success: false,
             message: 'Terjadi kesalahan pada server',
@@ -34,8 +51,8 @@ router.post('/register', async (req, res) => {
 
 router.get('/protected/:id', authenticateJWT, async (req, res) => {
     try {
-        const ID = req.params.id;
-        const userData = await User.getPenggunaData(ID);
+        const id = req.params.id;
+        const userData = await User.getPenggunaData(id);
 
         if (!userData) {
             return res.status(404).json({
@@ -95,6 +112,8 @@ router.put('/update/:id', authenticateJWT, async (req, res) => {
 });
 
 router.post('/internal/find-or-create', async(req, res) => {
+    if (!checkInternalToken(req, res)) return;
+
     try {
         const { profile, provider } = req.body;
 
@@ -123,14 +142,7 @@ router.post('/internal/find-or-create', async(req, res) => {
 });
 
 router.post('/internal/get-user', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token !== process.env.INTERNAL_SERVICE_TOKEN) {
-        return res.status(403).json({
-            success: false,
-            message: 'Forbidden',
-            data: null
-        });
-    }
+    if (!checkInternalToken(req, res)) return;
 
     const { username } = req.body;
 

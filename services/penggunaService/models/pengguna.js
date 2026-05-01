@@ -25,7 +25,7 @@ const user = {
     },
 
     findOrCreatedOAuth: async (profile, provider) => {
-        const { id, displayName, emails, photos } = profile;
+        const { id, displayName, email, photo } = profile;
 
         const [rows] = await db.execute(`SELECT * FROM pengguna WHERE email = ?`, [email]);
 
@@ -36,12 +36,17 @@ const user = {
         const [result] = await db.execute(
             `INSERT INTO pengguna (username, email, fotoProfil, oauthProvider, oauthId, role) 
             VALUES (?, ?, ?, ?, ?, ?)`,
-            [displayName, email, foto, provider, id, 'pembeli']
+            [displayName, email, photo, provider, id, 'pembeli']
         );
 
         const [newUser] = await db.execute(`SELECT * FROM pengguna WHERE id = ?`, [result.insertId]);
         return newUser[0];
+    },
+
+    findByUsername: async (username) => {
+        const [rows] = await db.execute(`SELECT * FROM pengguna WHERE username = ?`, [username]);
+        return rows[0] || null;
     }
-}
+};
 
 module.exports = user;
