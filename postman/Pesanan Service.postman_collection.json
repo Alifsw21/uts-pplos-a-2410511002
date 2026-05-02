@@ -1,0 +1,102 @@
+{
+  "info": {
+    "_postman_id": "f584e193-b9a1-411a-a62d-9430319c518e",
+    "name": "Pesanan Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52615350",
+    "_collection_link": "https://go.postman.co/collection/52615350-f584e193-b9a1-411a-a62d-9430319c518e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "GET Semua Pesanan",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/orders/pesanan",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "orders",
+            "pesanan"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST Tambah Pesanan",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/orders/pesanan",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "orders",
+            "pesanan"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PUT Update Pesanan",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/orders/update/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "orders",
+            "update",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
