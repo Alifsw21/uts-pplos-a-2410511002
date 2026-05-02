@@ -65,10 +65,10 @@ router.post('/pesanan', async (req, res) => {
 });
 
 router.put('/update/:id', async (req, res) => {
-    const { idPengguna, idToko, idProduk, hargaSatuan, jumlah } = req.body;
+    const { idPengguna, idToko, idProduk, jumlah } = req.body;
     const id = req.params.id;
 
-    if (!idPengguna || !idToko || !idProduk || !hargaSatuan || !jumlah) {
+    if (!idPengguna || !idToko || !idProduk || !jumlah) {
         return res.status(400).json({
             success: false,
             message: 'Semua data harus diisi',
@@ -77,19 +77,40 @@ router.put('/update/:id', async (req, res) => {
     }
 
     try {
-        const result = await orders.update(id, idPengguna, idToko, idProduk, hargaSatuan, jumlah);
-        if (result.affectedRows === 0) {
+        const PRODUK_SERVICE_URL = process.env.PRODUK_SERVICE_URL || 'http://localhost:8000';
+        let hargaSatuan = 0;
+
+        try {
+            const responseProduk = await axios.get(`${PRODUK_SERVICE_URL}/api/produk/${idProduk}`);
+            hargaSatuan = responseProduk.data.data.harga;
+        } catch (err) {
             return res.status(404).json({
                 success: false,
-                message: 'Data pesanan tidak ditemukan',
+                message: 'Produk tidak ditemukan di produk service',
                 data: null
             });
         }
+
+        const result = await orders.update(id, idPengguna, idToko, idProduk, hargaSatuan, jumlah);
+        
+        if (!result || result.affectedRows === 0) {
+            return res.status(404).json({
+                    success: false,
+                    message: 'Data pesanan tidak ditemukan',
+                    data: null
+            });
+        }
+
+        const [updated] = await require('../config/appConfig').query(
+            'SELECT * FROM pesanan WHERE idPesanan = ?', [id]
+        );
+
         res.status(200).json({
             success: true,
             message: 'Data pesanan berhasil diperbarui',
-            data: {idPengguna, idToko, idProduk, hargaSatuan, jumlah}
+            data: updated[0]
         });
+        
     } catch (err) {
         res.status(500).json({
             success: false,

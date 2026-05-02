@@ -11,7 +11,9 @@ const order = {
         const [result] = await db.query('INSERT INTO pesanan (idPengguna, idToko, idProduk, hargaSatuan, totalHarga) VALUES (?, ?, ?, ?, ?)',
                 [idPengguna, idToko, idProduk, hargaSatuan, totalHarga]
             );
-        return result;
+        
+        const [rows] = await db.query('SELECT * FROM pesanan WHERE idPesanan = ?', [result.insertId]);
+        return rows[0];
     },
 
     update: async (id, idPengguna, idToko, idProduk, hargaSatuan, jumlah) => {
